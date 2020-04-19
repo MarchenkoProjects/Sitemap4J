@@ -9,6 +9,7 @@ import javax.xml.validation.Validator;
 import java.io.File;
 import java.io.IOException;
 
+import static java.util.Objects.isNull;
 import static javax.xml.XMLConstants.W3C_XML_SCHEMA_NS_URI;
 
 /**
@@ -17,6 +18,10 @@ import static javax.xml.XMLConstants.W3C_XML_SCHEMA_NS_URI;
 public class SitemapValidator {
 
     public void validate(File file) {
+        if (isNull(file)) {
+            throw new NullPointerException("Parameter 'file' must not be null");
+        }
+
         SchemaFactory schemaFactory = SchemaFactory.newInstance(W3C_XML_SCHEMA_NS_URI);
         try {
             Schema schema = schemaFactory.newSchema(new File("src/main/resources/sitemap.xsd"));

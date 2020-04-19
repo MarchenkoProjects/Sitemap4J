@@ -10,6 +10,7 @@ import java.time.ZonedDateTime;
 import java.util.Collection;
 import java.util.function.BiConsumer;
 
+import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
 
 /**
@@ -18,6 +19,11 @@ import static java.util.Objects.nonNull;
 public class SitemapLoader {
 
     public void load(File file, Collection<Url> urls) {
+        if (isNull(file)) {
+            throw new NullPointerException("Parameter 'file' must not be null");
+        }
+        if (isNull(urls) || urls.isEmpty()) return;
+
         XMLInputFactory xmlInputFactory = XMLInputFactory.newInstance();
         try {
             Url.Builder urlBuilder = null;
