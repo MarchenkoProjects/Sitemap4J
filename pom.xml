@@ -13,6 +13,32 @@
     <description>Sitemap4J is a Java library that implements the Sitemap XML protocol.</description>
     <url>https://www.sitemaps.org/protocol.html</url>
 
+    <developers>
+        <developer>
+            <id>omarchenko</id>
+            <name>Oleg Marchenko</name>
+            <email>omarchenko.150@gmail.com</email>
+            <roles>
+                <role>architect</role>
+                <role>developer</role>
+            </roles>
+            <timezone>+2</timezone>
+        </developer>
+    </developers>
+
+    <licenses>
+        <license>
+            <name>The Apache Software License, Version 2.0</name>
+            <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
+
+    <issueManagement>
+        <system>GitHub</system>
+        <url>https://github.com/MarchenkoProjects/Sitemap4J/issues</url>
+    </issueManagement>
+
     <build>
         <finalName>${project.artifactId}-${project.version}</finalName>
         <plugins>
