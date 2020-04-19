@@ -1,16 +1,10 @@
 package com.github.marchenkoprojects.sitemap4j;
 
-import org.xml.sax.SAXException;
-
-import javax.xml.XMLConstants;
 import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
 import javax.xml.stream.events.XMLEvent;
 import javax.xml.transform.stream.StreamSource;
-import javax.xml.validation.Schema;
-import javax.xml.validation.SchemaFactory;
-import javax.xml.validation.Validator;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -49,15 +43,7 @@ public class Sitemap {
             throw new IllegalArgumentException("File [" + file + "] not found");
         }
 
-        SchemaFactory schemaFactory = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
-        try {
-            Schema schema = schemaFactory.newSchema(new File("src/main/resources/sitemap.xsd"));
-            Validator validator = schema.newValidator();
-            validator.validate(new StreamSource(file));
-        }
-        catch (SAXException | IOException e) {
-            throw new SitemapNotValidException(e);
-        }
+        new SitemapValidator().validate(file);
 
         XMLInputFactory xmlInputFactory = XMLInputFactory.newInstance();
         try {
