@@ -9,7 +9,7 @@ import static java.util.Objects.isNull;
 /**
  * @author Oleg Marchenko
  */
-public class Sitemap {
+public class Sitemap implements Loadable, Flushable {
     private static final int DEFAULT_MAX_URLS = 50_000;
 
     private final Set<Url> urls;
@@ -24,6 +24,7 @@ public class Sitemap {
         this.maxUrls = maxUrls;
     }
 
+    @Override
     public void load(File file) {
         if (isNull(file)) {
             throw new NullPointerException("Parameter 'file' must not be null");
@@ -63,7 +64,12 @@ public class Sitemap {
         return urls.remove(url);
     }
 
+    @Override
     public void flush(File file) {
+        if (isNull(file)) {
+            throw new NullPointerException("Parameter 'file' must not be null");
+        }
+
         new SitemapFlusher().flush(urls, file);
         urls.clear();
     }
