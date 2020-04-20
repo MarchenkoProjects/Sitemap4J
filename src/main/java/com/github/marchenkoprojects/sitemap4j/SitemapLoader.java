@@ -12,7 +12,7 @@ import java.io.InputStream;
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.time.temporal.Temporal;
-import java.util.Collection;
+import java.util.Map;
 import java.util.function.BiConsumer;
 import java.util.regex.Pattern;
 import java.util.zip.GZIPInputStream;
@@ -24,7 +24,7 @@ import static java.util.Objects.nonNull;
  */
 class SitemapLoader {
 
-    public void load(File file, Collection<Url> urls) {
+    public void load(File file, Map<String, Url> urls) {
         XMLStreamReader xmlStreamReader = null;
         try {
             UrlBuilder urlBuilder = null;
@@ -64,7 +64,9 @@ class SitemapLoader {
                     switch (tagName) {
                         case "url":
                             if (nonNull(urlBuilder)) {
-                                urls.add(urlBuilder.build());
+                                Url url = urlBuilder.build();
+                                urls.put(url.getLoc(), url);
+
                                 urlBuilder = null;
                             }
                             break;

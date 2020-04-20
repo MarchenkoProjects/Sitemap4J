@@ -1,10 +1,11 @@
 package com.github.marchenkoprojects.sitemap4j;
 
 import java.io.File;
-import java.util.LinkedHashSet;
-import java.util.Set;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 import static java.util.Objects.isNull;
+import static java.util.Objects.nonNull;
 
 /**
  * @author Oleg Marchenko
@@ -12,11 +13,11 @@ import static java.util.Objects.isNull;
 public class Sitemap implements Loadable, Flushable {
     private static final int DEFAULT_MAX_URLS = 50_000;
 
-    private final Set<Url> urls;
+    private final Map<String, Url> urls;
     private int maxUrls;
 
     public Sitemap() {
-        this.urls = new LinkedHashSet<>(1024);
+        this.urls = new LinkedHashMap<>(2048);
         this.maxUrls = DEFAULT_MAX_URLS;
     }
 
@@ -47,9 +48,12 @@ public class Sitemap implements Loadable, Flushable {
             throw new NullPointerException("Parameter 'url' must not be null");
         }
         if (urls.size() < maxUrls) {
-            if (!urls.add(url)) {
-                throw new SitemapAlreadyContainsUrlException(url.getLoc());
+            String loc = url.getLoc();
+            if (urls.containsKey(loc)) {
+                throw new SitemapAlreadyContainsUrlException(loc);
             }
+
+            urls.put(loc, url);
             return true;
         }
         return false;
@@ -59,14 +63,18 @@ public class Sitemap implements Loadable, Flushable {
         if (isNull(url)) {
             throw new NullPointerException("Parameter 'url' must not be null");
         }
-        return urls.remove(url) && urls.add(url);
+
+        Url prevUrl = urls.replace(url.getLoc(), url);
+        return nonNull(prevUrl);
     }
 
     public boolean deleteUrl(Url url) {
         if (isNull(url)) {
             throw new NullPointerException("Parameter 'url' must not be null");
         }
-        return urls.remove(url);
+
+        Url removedUrl = urls.remove(url.getLoc());
+        return nonNull(removedUrl);
     }
 
     @Override
@@ -76,7 +84,7 @@ public class Sitemap implements Loadable, Flushable {
         }
         if (urls.isEmpty()) return;
 
-        new SitemapFlusher().flush(urls, file);
+        new SitemapFlusher().flush(urls.values(), file);
         urls.clear();
     }
 }

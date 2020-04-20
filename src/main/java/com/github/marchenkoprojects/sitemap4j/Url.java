@@ -6,7 +6,6 @@ import java.time.OffsetDateTime;
 import java.time.temporal.Temporal;
 
 import static java.time.ZoneOffset.UTC;
-import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
 
 /**
@@ -65,24 +64,6 @@ public class Url {
             }
         }
         this.priority = priority;
-    }
-
-    @Override
-    public boolean equals(Object that) {
-        if (this == that) {
-            return true;
-        }
-        if (isNull(that) || getClass() != that.getClass()) {
-            return false;
-        }
-
-        Url url = (Url) that;
-        return loc.equals(url.loc);
-    }
-
-    @Override
-    public int hashCode() {
-        return loc.hashCode();
     }
 
     @Override
