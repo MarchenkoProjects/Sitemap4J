@@ -6,12 +6,16 @@ import javax.xml.stream.XMLStreamReader;
 import javax.xml.stream.events.XMLEvent;
 import javax.xml.transform.stream.StreamSource;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.time.temporal.Temporal;
 import java.util.Collection;
 import java.util.function.BiConsumer;
 import java.util.regex.Pattern;
+import java.util.zip.GZIPInputStream;
 
 import static java.util.Objects.nonNull;
 
@@ -21,13 +25,12 @@ import static java.util.Objects.nonNull;
 class SitemapLoader {
 
     public void load(File file, Collection<Url> urls) {
-        XMLInputFactory xmlInputFactory = XMLInputFactory.newInstance();
         XMLStreamReader xmlStreamReader = null;
         try {
             UrlBuilder urlBuilder = null;
             BiConsumer<String, UrlBuilder> tagValueConsumer = null;
 
-            xmlStreamReader = xmlInputFactory.createXMLStreamReader(new StreamSource(file));
+            xmlStreamReader = createXMLStreamReader(file);
             while (xmlStreamReader.hasNext()) {
                 int event = xmlStreamReader.next();
                 if (event == XMLEvent.START_ELEMENT) {
@@ -87,6 +90,20 @@ class SitemapLoader {
                     throw new RuntimeException(e);
                 }
             }
+        }
+    }
+
+    private XMLStreamReader createXMLStreamReader(File file) {
+        XMLInputFactory xmlInputFactory = XMLInputFactory.newInstance();
+        try {
+            InputStream is = new FileInputStream(file);
+            if (file.getName().endsWith(".gz")) {
+                is = new GZIPInputStream(is);
+            }
+            return xmlInputFactory.createXMLStreamReader(new StreamSource(is));
+        }
+        catch (IOException | XMLStreamException e) {
+            throw new SitemapNotLoadedException(e);
         }
     }
 
