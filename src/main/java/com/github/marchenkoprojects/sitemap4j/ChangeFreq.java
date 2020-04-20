@@ -3,7 +3,7 @@ package com.github.marchenkoprojects.sitemap4j;
 /**
  * @author Oleg Marchenko
  */
-public enum ChangeFreqType {
+public enum ChangeFreq {
     ALWAYS,
     HOURLY,
     DAILY,

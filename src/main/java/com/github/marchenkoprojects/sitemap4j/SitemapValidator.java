@@ -15,7 +15,7 @@ import static javax.xml.XMLConstants.W3C_XML_SCHEMA_NS_URI;
 /**
  * @author Oleg Marchenko
  */
-public class SitemapValidator {
+class SitemapValidator {
 
     public void validate(File file) {
         if (isNull(file)) {

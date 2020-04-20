@@ -26,14 +26,19 @@ public class Sitemap implements Loadable, Flushable {
 
     @Override
     public void load(File file) {
+        load(file, true);
+    }
+
+    public void load(File file, boolean validate) {
         if (isNull(file)) {
             throw new NullPointerException("Parameter 'file' must not be null");
         }
         if (!file.exists()) {
             throw new IllegalArgumentException("File [" + file + "] not found");
         }
-
-        new SitemapValidator().validate(file);
+        if (validate) {
+            new SitemapValidator().validate(file);
+        }
         new SitemapLoader().load(file, urls);
     }
 
@@ -69,6 +74,7 @@ public class Sitemap implements Loadable, Flushable {
         if (isNull(file)) {
             throw new NullPointerException("Parameter 'file' must not be null");
         }
+        if (urls.isEmpty()) return;
 
         new SitemapFlusher().flush(urls, file);
         urls.clear();

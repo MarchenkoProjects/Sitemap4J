@@ -1,7 +1,11 @@
 package com.github.marchenkoprojects.sitemap4j;
 
-import java.time.ZonedDateTime;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
+import java.time.temporal.Temporal;
 
+import static java.time.ZoneOffset.UTC;
 import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
 
@@ -10,14 +14,11 @@ import static java.util.Objects.nonNull;
  */
 public class Url {
     private final String loc;
-    private ZonedDateTime lastmod;
-    private ChangeFreqType changefreq;
+    private Temporal lastmod;
+    private ChangeFreq changefreq;
     private Float priority;
 
     public Url(String loc) {
-        if (isNull(loc) || loc.isEmpty()) {
-            throw new IllegalArgumentException("Parameter 'loc' must not be null or empty");
-        }
         this.loc = loc;
     }
 
@@ -25,19 +26,31 @@ public class Url {
         return loc;
     }
 
-    public ZonedDateTime getLastmod() {
+    public Temporal getLastmod() {
         return lastmod;
     }
 
-    public void setLastmod(ZonedDateTime lastmod) {
+    void setLastmod(Temporal lastmod) {
         this.lastmod = lastmod;
     }
 
-    public ChangeFreqType getChangefreq() {
+    public void setLastmod(LocalDate lastmod) {
+        this.lastmod = lastmod;
+    }
+
+    public void setLastmod(LocalDateTime lastmod) {
+        this.lastmod = lastmod.atOffset(UTC).withNano(0);
+    }
+
+    public void setLastmod(OffsetDateTime lastmod) {
+        this.lastmod = lastmod;
+    }
+
+    public ChangeFreq getChangefreq() {
         return changefreq;
     }
 
-    public void setChangefreq(ChangeFreqType changefreq) {
+    public void setChangefreq(ChangeFreq changefreq) {
         this.changefreq = changefreq;
     }
 
@@ -46,6 +59,11 @@ public class Url {
     }
 
     public void setPriority(Float priority) {
+        if (nonNull(priority)) {
+            if (priority < 0 || priority > 1) {
+                throw new IllegalArgumentException("Parameter 'priority' must be between 0 and 1");
+            }
+        }
         this.priority = priority;
     }
 
@@ -76,59 +94,5 @@ public class Url {
                     (nonNull(changefreq) ? "<changefreq>" + changefreq.name().toLowerCase() + "</changefreq>" : "") +
                     (nonNull(priority) ? "<priority>" + priority + "</priority>" : "") +
                 "</url>";
-    }
-
-    public static Builder builder() {
-        return new Builder();
-    }
-
-    public static class Builder {
-        private String loc;
-        private ZonedDateTime lastmod;
-        private ChangeFreqType changefreq;
-        private Float priority;
-
-        public Builder setLoc(String loc) {
-            if (isNull(loc) || loc.isEmpty()) {
-                throw new IllegalArgumentException("Parameter 'loc' must not be null or empty");
-            }
-            this.loc = loc;
-            return this;
-        }
-
-        public Builder setLastmod(ZonedDateTime lastmod) {
-            if (isNull(lastmod)) {
-                throw new NullPointerException("Parameter 'lastmod' must not be null");
-            }
-            this.lastmod = lastmod;
-            return this;
-        }
-
-        public Builder setChangefreq(ChangeFreqType changefreq) {
-            if (isNull(changefreq)) {
-                throw new NullPointerException("Parameter 'changefreq' must not be null");
-            }
-            this.changefreq = changefreq;
-            return this;
-        }
-
-        public Builder setPriority(Float priority) {
-            if (isNull(priority)) {
-                throw new NullPointerException("Parameter 'priority' must not be null");
-            }
-            if (priority < 0 || priority > 1) {
-                throw new IllegalArgumentException("Parameter 'priority' must be between 0 and 1");
-            }
-            this.priority = priority;
-            return this;
-        }
-
-        public Url build() {
-            Url url = new Url(loc);
-            url.setLastmod(lastmod);
-            url.setChangefreq(changefreq);
-            url.setPriority(priority);
-            return url;
-        }
     }
 }
