@@ -10,7 +10,7 @@ import static java.util.Objects.nonNull;
 /**
  * @author Oleg Marchenko
  */
-public class Sitemap implements Loadable, Flushable {
+public class Sitemap {
     private static final int DEFAULT_MAX_URLS = 50_000;
 
     private final Map<String, Url> urls;
@@ -25,7 +25,6 @@ public class Sitemap implements Loadable, Flushable {
         this.maxUrls = maxUrls;
     }
 
-    @Override
     public void load(File file) {
         load(file, true);
     }
@@ -77,12 +76,10 @@ public class Sitemap implements Loadable, Flushable {
         return nonNull(removedUrl);
     }
 
-    @Override
     public void flush(File file) {
         if (isNull(file)) {
             throw new NullPointerException("Parameter 'file' must not be null");
         }
-        if (urls.isEmpty()) return;
 
         new SitemapFlusher().flush(urls.values(), file);
         urls.clear();
