@@ -68,12 +68,19 @@ public class Url {
 
     @Override
     public String toString() {
-        return
-                "<url>" +
-                    "<loc>" + loc + "</loc>" +
-                    (nonNull(lastmod) ? "<lastmod>" + lastmod + "</lastmod>" : "") +
-                    (nonNull(changefreq) ? "<changefreq>" + changefreq.name().toLowerCase() + "</changefreq>" : "") +
-                    (nonNull(priority) ? "<priority>" + priority + "</priority>" : "") +
-                "</url>";
+        StringBuilder builder = new StringBuilder();
+        builder.append("\t<url>\n");
+        builder.append("\t\t<loc>").append(loc).append("</loc>\n");
+        if (nonNull(lastmod)) {
+            builder.append("\t\t<lastmod>").append(lastmod).append("</lastmod>\n");
+        }
+        if (nonNull(changefreq)) {
+            builder.append("\t\t<changefreq>").append(changefreq.name().toLowerCase()).append("</changefreq>\n");
+        }
+        if (nonNull(priority)) {
+            builder.append("\t\t<priority>").append(priority).append("</priority>\n");
+        }
+        builder.append("\t</url>\n");
+        return builder.toString();
     }
 }
