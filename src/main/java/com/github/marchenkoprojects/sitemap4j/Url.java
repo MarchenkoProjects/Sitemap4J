@@ -6,6 +6,7 @@ import java.time.OffsetDateTime;
 import java.time.temporal.Temporal;
 
 import static java.time.ZoneOffset.UTC;
+import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
 
 /**
@@ -18,6 +19,9 @@ public class Url {
     private Float priority;
 
     public Url(String loc) {
+        if (isNull(loc) || loc.isEmpty()) {
+            throw new IllegalArgumentException("Parameter 'loc' must not be null or empty");
+        }
         this.loc = loc;
     }
 

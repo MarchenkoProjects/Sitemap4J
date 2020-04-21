@@ -13,10 +13,15 @@ import static java.util.Objects.nonNull;
 public class Sitemap {
     private static final int DEFAULT_MAX_URLS = 50_000;
 
+    private final File file;
     private final Map<String, Url> urls;
     private int maxUrls;
 
-    public Sitemap() {
+    public Sitemap(File file) {
+        if (isNull(file)) {
+            throw new NullPointerException("Parameter 'file' must not be null");
+        }
+        this.file = file;
         this.urls = new LinkedHashMap<>(2048);
         this.maxUrls = DEFAULT_MAX_URLS;
     }
@@ -25,21 +30,24 @@ public class Sitemap {
         this.maxUrls = maxUrls;
     }
 
-    public void load(File file) {
-        load(file, true);
+    public void load() {
+        load(true);
     }
 
-    public void load(File file, boolean validate) {
-        if (isNull(file)) {
-            throw new NullPointerException("Parameter 'file' must not be null");
+    public void load(boolean validate) {
+        if (file.exists()) {
+            if (validate) {
+                new SitemapValidator().validate(file);
+            }
+            new SitemapLoader().load(file, urls);
         }
-        if (!file.exists()) {
-            throw new IllegalArgumentException("File [" + file + "] not found");
+    }
+
+    public boolean addUrl(String url) {
+        if (isNull(url) || url.isEmpty()) {
+            throw new NullPointerException("Parameter 'url' must not be null or empty");
         }
-        if (validate) {
-            new SitemapValidator().validate(file);
-        }
-        new SitemapLoader().load(file, urls);
+        return addUrl(new Url(url));
     }
 
     public boolean addUrl(Url url) {
@@ -67,6 +75,13 @@ public class Sitemap {
         return nonNull(prevUrl);
     }
 
+    public boolean deleteUrl(String url) {
+        if (isNull(url) || url.isEmpty()) {
+            throw new NullPointerException("Parameter 'url' must not be null or empty");
+        }
+        return deleteUrl(new Url(url));
+    }
+
     public boolean deleteUrl(Url url) {
         if (isNull(url)) {
             throw new NullPointerException("Parameter 'url' must not be null");
@@ -76,11 +91,7 @@ public class Sitemap {
         return nonNull(removedUrl);
     }
 
-    public void flush(File file) {
-        if (isNull(file)) {
-            throw new NullPointerException("Parameter 'file' must not be null");
-        }
-
+    public void flush() {
         new SitemapFlusher().flush(urls.values(), file);
         urls.clear();
     }
