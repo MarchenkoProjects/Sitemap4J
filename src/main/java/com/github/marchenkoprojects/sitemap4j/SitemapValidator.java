@@ -7,9 +7,11 @@ import javax.xml.validation.Schema;
 import javax.xml.validation.SchemaFactory;
 import javax.xml.validation.Validator;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.util.zip.GZIPInputStream;
 
-import static java.util.Objects.isNull;
 import static javax.xml.XMLConstants.W3C_XML_SCHEMA_NS_URI;
 
 /**
@@ -17,16 +19,17 @@ import static javax.xml.XMLConstants.W3C_XML_SCHEMA_NS_URI;
  */
 class SitemapValidator {
 
-    public void validate(File file) {
-        if (isNull(file)) {
-            throw new NullPointerException("Parameter 'file' must not be null");
-        }
-
+    void validate(File file) {
         SchemaFactory schemaFactory = SchemaFactory.newInstance(W3C_XML_SCHEMA_NS_URI);
         try {
+            InputStream is = new FileInputStream(file);
+            if (file.getName().endsWith(".gz")) {
+                is = new GZIPInputStream(is);
+            }
+
             Schema schema = schemaFactory.newSchema(new File("src/main/resources/sitemap.xsd"));
             Validator validator = schema.newValidator();
-            validator.validate(new StreamSource(file));
+            validator.validate(new StreamSource(is));
         }
         catch (SAXException | IOException e) {
             throw new SitemapNotValidException(e);

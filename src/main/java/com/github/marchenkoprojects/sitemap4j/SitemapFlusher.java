@@ -1,5 +1,7 @@
 package com.github.marchenkoprojects.sitemap4j;
 
+import com.github.marchenkoprojects.sitemap4j.Sitemap.Url;
+
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -12,12 +14,13 @@ import java.util.zip.GZIPOutputStream;
  */
 class SitemapFlusher {
 
-    public void flush(Collection<Url> urls, File file) {
+    void flush(Collection<Url> urls, File file) {
         try {
             OutputStream os = new FileOutputStream(file);
             if (file.getName().endsWith(".gz")) {
                 os = new GZIPOutputStream(os);
             }
+
             os.write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n".getBytes());
             os.write("<urlset xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\">\n".getBytes());
             for (Url url: urls) {

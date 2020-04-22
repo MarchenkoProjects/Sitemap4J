@@ -1,5 +1,7 @@
 package com.github.marchenkoprojects.sitemap4j;
 
+import com.github.marchenkoprojects.sitemap4j.Sitemap.Url;
+
 import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
@@ -24,7 +26,7 @@ import static java.util.Objects.nonNull;
  */
 class SitemapLoader {
 
-    public void load(File file, Map<String, Url> urls) {
+    void load(File file, Map<String, Url> urls) {
         XMLStreamReader xmlStreamReader = null;
         try {
             UrlBuilder urlBuilder = null;
