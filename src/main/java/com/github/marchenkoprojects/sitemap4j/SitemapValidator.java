@@ -20,6 +20,10 @@ import static javax.xml.XMLConstants.W3C_XML_SCHEMA_NS_URI;
 class SitemapValidator {
 
     void validate(File file) {
+        validate(file, new File("src/main/resources/sitemap.xsd"));
+    }
+
+    void validate(File file, File schemaFile) {
         SchemaFactory schemaFactory = SchemaFactory.newInstance(W3C_XML_SCHEMA_NS_URI);
         try {
             InputStream is = new FileInputStream(file);
@@ -27,7 +31,7 @@ class SitemapValidator {
                 is = new GZIPInputStream(is);
             }
 
-            Schema schema = schemaFactory.newSchema(new File("src/main/resources/sitemap.xsd"));
+            Schema schema = schemaFactory.newSchema(schemaFile);
             Validator validator = schema.newValidator();
             validator.validate(new StreamSource(is));
         }

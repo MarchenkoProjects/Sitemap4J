@@ -1,27 +1,24 @@
 package com.github.marchenkoprojects.sitemap4j;
 
-import com.github.marchenkoprojects.sitemap4j.Sitemap.Url;
-
-import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
 import javax.xml.stream.events.XMLEvent;
-import javax.xml.transform.stream.StreamSource;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
+import java.time.LocalDate;
+import java.time.OffsetDateTime;
+import java.time.temporal.Temporal;
 import java.util.Map;
 import java.util.function.BiConsumer;
-import java.util.zip.GZIPInputStream;
+import java.util.regex.Pattern;
 
 import static java.util.Objects.nonNull;
 
 /**
  * @author Oleg Marchenko
  */
-class SitemapLoader {
+class SitemapIndexLoader extends SitemapLoader {
 
+    @Override
     void load(File file, Map<String, SitemapIndex.Url> urls) {
         XMLStreamReader xmlStreamReader = null;
         try {
@@ -34,7 +31,7 @@ class SitemapLoader {
                 if (event == XMLEvent.START_ELEMENT) {
                     String tagName = xmlStreamReader.getLocalName();
                     switch (tagName) {
-                        case "url":
+                        case "sitemap":
                             urlBuilder = new UrlBuilder();
                             break;
                         case "loc":
@@ -42,12 +39,6 @@ class SitemapLoader {
                             break;
                         case "lastmod":
                             tagValueConsumer = (value, builder) -> builder.setLastmod(value);
-                            break;
-                        case "changefreq":
-                            tagValueConsumer = (value, builder) -> builder.setChangefreq(value);
-                            break;
-                        case "priority":
-                            tagValueConsumer = (value, builder) -> builder.setPriority(value);
                             break;
                     }
                 }
@@ -60,9 +51,9 @@ class SitemapLoader {
                 else if (event == XMLEvent.END_ELEMENT) {
                     String tagName = xmlStreamReader.getLocalName();
                     switch (tagName) {
-                        case "url":
+                        case "sitemap":
                             if (nonNull(urlBuilder)) {
-                                Url url = urlBuilder.build();
+                                SitemapIndex.Url url = urlBuilder.build();
                                 urls.put(url.getLoc(), url);
 
                                 urlBuilder = null;
@@ -70,8 +61,6 @@ class SitemapLoader {
                             break;
                         case "loc":
                         case "lastmod":
-                        case "changefreq":
-                        case "priority":
                             tagValueConsumer = null;
                             break;
                     }
@@ -93,37 +82,28 @@ class SitemapLoader {
         }
     }
 
-    protected XMLStreamReader createXMLStreamReader(File file) {
-        XMLInputFactory xmlInputFactory = XMLInputFactory.newInstance();
-        try {
-            InputStream is = new FileInputStream(file);
-            if (file.getName().endsWith(".gz")) {
-                is = new GZIPInputStream(is);
+    protected static class UrlBuilder {
+        private static final Pattern TZD_PATTERN = Pattern.compile("(\\+\\d{2}:\\d{2}|-\\d{2}:\\d{2}|Z)");
+
+        protected String loc;
+        protected Temporal lastmod;
+
+        public void setLoc(String loc) {
+            this.loc = loc;
+        }
+
+        public void setLastmod(String value) {
+            if (TZD_PATTERN.matcher(value).find()) {
+                this.lastmod = OffsetDateTime.parse(value);
             }
-            return xmlInputFactory.createXMLStreamReader(new StreamSource(is));
-        }
-        catch (IOException | XMLStreamException e) {
-            throw new SitemapNotLoadedException(e);
-        }
-    }
-
-    private static class UrlBuilder extends SitemapIndexLoader.UrlBuilder {
-        private ChangeFreq changefreq;
-        private Float priority;
-
-        public void setChangefreq(String value) {
-            this.changefreq = ChangeFreq.valueOf(value.toUpperCase());
+            else {
+                this.lastmod = LocalDate.parse(value);
+            }
         }
 
-        public void setPriority(String value) {
-            this.priority = Float.parseFloat(value);
-        }
-
-        public Url build() {
-            Url url = new Url(loc);
+        public SitemapIndex.Url build() {
+            SitemapIndex.Url url = new SitemapIndex.Url(loc);
             url.setLastmod(lastmod);
-            url.setChangefreq(changefreq);
-            url.setPriority(priority);
             return url;
         }
     }

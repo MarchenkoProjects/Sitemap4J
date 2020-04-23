@@ -1,14 +1,9 @@
 package com.github.marchenkoprojects.sitemap4j;
 
 import java.io.File;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.OffsetDateTime;
-import java.time.temporal.Temporal;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-import static java.time.ZoneOffset.UTC;
 import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
 
@@ -18,11 +13,11 @@ import static java.util.Objects.nonNull;
 public class Sitemap {
     private static final int DEFAULT_MAX_URLS = 50_000;
 
-    private final File file;
-    private String baseUrl;
+    protected final File file;
+    protected String baseUrl;
 
-    private final Map<String, Url> urls;
-    private int maxUrls;
+    protected final Map<String, SitemapIndex.Url> urls;
+    protected int maxUrls;
 
     public Sitemap(File file) {
         this(file, null);
@@ -43,6 +38,9 @@ public class Sitemap {
     }
 
     public Url createUrl(String url) {
+        if (isNull(url) || url.isEmpty()) {
+            throw new NullPointerException("Parameter 'url' must not be null or empty");
+        }
         if (isNull(baseUrl) || baseUrl.isEmpty()) {
             return new Url(url);
         }
@@ -58,6 +56,8 @@ public class Sitemap {
             if (validate) {
                 new SitemapValidator().validate(file);
             }
+            urls.clear();
+
             new SitemapLoader().load(file, urls);
         }
     }
@@ -90,24 +90,8 @@ public class Sitemap {
             throw new NullPointerException("Parameter 'url' must not be null");
         }
 
-        Url prevUrl = urls.replace(url.getLoc(), url);
+        SitemapIndex.Url prevUrl = urls.replace(url.getLoc(), url);
         return nonNull(prevUrl);
-    }
-
-    public boolean deleteUrl(String url) {
-        if (isNull(url) || url.isEmpty()) {
-            throw new NullPointerException("Parameter 'url' must not be null or empty");
-        }
-        return deleteUrl(new Url(url));
-    }
-
-    public boolean deleteUrl(Url url) {
-        if (isNull(url)) {
-            throw new NullPointerException("Parameter 'url' must not be null");
-        }
-
-        Url removedUrl = urls.remove(url.getLoc());
-        return nonNull(removedUrl);
     }
 
     public void flush() {
@@ -115,41 +99,16 @@ public class Sitemap {
         urls.clear();
     }
 
-    public static class Url {
-        private final String loc;
-        private Temporal lastmod;
+    protected boolean containsUrl(Url url) {
+        return urls.containsKey(url.getLoc());
+    }
+
+    public static class Url extends SitemapIndex.Url {
         private ChangeFreq changefreq;
         private Float priority;
 
         Url(String loc) {
-            if (isNull(loc) || loc.isEmpty()) {
-                throw new IllegalArgumentException("Parameter 'loc' must not be null or empty");
-            }
-            this.loc = loc;
-        }
-
-        public String getLoc() {
-            return loc;
-        }
-
-        public Temporal getLastmod() {
-            return lastmod;
-        }
-
-        void setLastmod(Temporal lastmod) {
-            this.lastmod = lastmod;
-        }
-
-        public void setLastmod(LocalDate lastmod) {
-            this.lastmod = lastmod;
-        }
-
-        public void setLastmod(LocalDateTime lastmod) {
-            this.lastmod = lastmod.atOffset(UTC).withNano(0);
-        }
-
-        public void setLastmod(OffsetDateTime lastmod) {
-            this.lastmod = lastmod;
+            super(loc);
         }
 
         public ChangeFreq getChangefreq() {
@@ -175,7 +134,7 @@ public class Sitemap {
 
         @Override
         public String toString() {
-            StringBuilder builder = new StringBuilder();
+            StringBuilder builder = new StringBuilder(128);
             builder.append("\t<url>\n");
             builder.append("\t\t<loc>").append(loc).append("</loc>\n");
             if (nonNull(lastmod)) {
