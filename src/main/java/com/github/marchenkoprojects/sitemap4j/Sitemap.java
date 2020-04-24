@@ -8,21 +8,77 @@ import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
 
 /**
+ * An abstract representation of a sitemap protocol.
+ * This class represents a real sitemap in memory.
+ *
+ * <p> Inside the sitemap there is a life cycle for the correct work with it.
+ * <ol>
+ *     <li>The first step is to specify a file in the file system;</li>
+ *     <li>The next step is loading the sitemap from a file into memory for further work;</li>
+ *     <li>The last step is to flush the sitemap back to the file.</li>
+ * </ol>
+ *
+ * <p> Example:
+ * <pre>
+ *     Sitemap sitemap = new Sitemap(new File("sitemap.xml"));
+ *     sitemap.load();
+ *     sitemap.addUrl("http://example.com/page1.html");
+ *     sitemap.addUrl("http://example.com/page2.html");
+ *     sitemap.addUrl("http://example.com/page3.html");
+ *     sitemap.flush();
+ * </pre>
+ *
  * @author Oleg Marchenko
+ * @see <a href="https://www.sitemaps.org/protocol.html">Sitemaps XML format</a>
  */
 public class Sitemap {
+    /**
+     * The maximum number of URLs that a sitemap can store from the specification.
+     */
     private static final int DEFAULT_MAX_URLS = 50_000;
 
+    /**
+     * This file is the main sitemap file.
+     * It can be a real file in the file system or abstract non-existent file.
+     * This file will be used to load the current state of the sitemap and flush a modified copy in memory.
+     */
     protected final File file;
+
+    /**
+     * The base site URL is used to shorten the link when it is added or modified.
+     */
     protected String baseUrl;
 
+    /**
+     * Internal registry of all URLs in the sitemap.
+     * Represents the current state of a sitemap in memory.
+     */
     protected final Map<String, SitemapIndex.Url> urls;
+
+    /**
+     * Indicates the maximum number of URls that a sitemap can store.
+     */
     protected int maxUrls;
 
+    /**
+     * Creates a new sitemap instance with an abstract or real file in filesystem.
+     *
+     * @param file abstract or real file in filesystem;
+     *             this file may also have a <tt>.gz</tt> extension
+     * @throws NullPointerException if the file is <code>null</code>
+     */
     public Sitemap(File file) {
         this(file, null);
     }
 
+    /**
+     * Creates a new sitemap instance with an abstract or real file and base URL.
+     *
+     * @param file abstract or real file in filesystem;
+     *             this file may also have a <tt>.gz</tt> extension
+     * @param baseUrl basic site URL
+     * @throws NullPointerException if the file is <code>null</code>
+     */
     public Sitemap(File file, String baseUrl) {
         if (isNull(file)) {
             throw new NullPointerException("Parameter 'file' must not be null");
@@ -33,13 +89,31 @@ public class Sitemap {
         this.maxUrls = DEFAULT_MAX_URLS;
     }
 
+    /**
+     * Sets the maximum number of URLs that a sitemap can store.
+     *
+     * @param maxUrls the maximum number of URLs
+     * @throws IllegalArgumentException if the maximum number of URLs is greater
+     *                                  than the possible value from the specification
+     */
     public void setMaxUrls(int maxUrls) {
+        if (maxUrls > DEFAULT_MAX_URLS) {
+            throw new IllegalArgumentException("Parameter 'maxUrls' cannot exceed 50,000 URLs");
+        }
         this.maxUrls = maxUrls;
     }
 
+    /**
+     * Represents the main factory method for creating URL.
+     * If base url is specified then it will be added as a prefix
+     * if the current <code>url</code> does not contain it.
+     *
+     * @param url URL for adding to the sitemap
+     * @throws NullPointerException if URL is <code>null</code> or empty
+     */
     public Url createUrl(String url) {
         if (isNull(url) || url.isEmpty()) {
-            throw new NullPointerException("Parameter 'url' must not be null or empty");
+            throw new IllegalArgumentException("Parameter 'url' must not be null or empty");
         }
         if (isNull(baseUrl) || baseUrl.isEmpty()) {
             return new Url(url);
@@ -47,10 +121,28 @@ public class Sitemap {
         return new Url(url.startsWith(baseUrl) ? url : baseUrl + url);
     }
 
+    /**
+     * Performs to load the current state of the sitemap from a file.
+     * Method will load if the file really exists in the file system.
+     * This method is part of the life cycle of working with a sitemap.
+     * Calling this method will always validate the sitemap.
+     *
+     * @throws SitemapNotValidException if the sitemap has not passed the validation stage
+     * @throws SitemapNotLoadedException if errors occurred while loading the sitemap
+     */
     public void load() {
         load(true);
     }
 
+    /**
+     * Performs to load the current state of the sitemap from a file.
+     * Method will load if the file really exists in the file system.
+     * This method is part of the life cycle of working with a sitemap.
+     *
+     * @param validate indicates whether to validate the sitemap
+     * @throws SitemapNotValidException if the sitemap has not passed the validation stage
+     * @throws SitemapNotLoadedException if errors occurred while loading the sitemap
+     */
     public void load(boolean validate) {
         if (file.exists()) {
             if (validate) {
@@ -62,13 +154,33 @@ public class Sitemap {
         }
     }
 
+    /**
+     * Adds a new URL to the sitemap.
+     *
+     * @param url new URL to add
+     * @return <code>true</code> if the URL is added successfully;
+     *         URL will not be added to the site map if such URL already exists
+     *         or the maximum number of URls has been reached
+     * @throws IllegalArgumentException if URL is <code>null</code> or empty
+     * @throws SitemapAlreadyContainsUrlException if this URL already exists in the sitemap
+     */
     public boolean addUrl(String url) {
         if (isNull(url) || url.isEmpty()) {
-            throw new NullPointerException("Parameter 'url' must not be null or empty");
+            throw new IllegalArgumentException("Parameter 'url' must not be null or empty");
         }
         return addUrl(new Url(url));
     }
 
+    /**
+     * Adds a new URL to the sitemap.
+     *
+     * @param url new URL to add
+     * @return <code>true</code> if the URL is added successfully;
+     *         URL will not be added to the site map if such URL already exists
+     *         or the maximum number of URls has been reached
+     * @throws NullPointerException if URL is <code>null</code>
+     * @throws SitemapAlreadyContainsUrlException if this URL already exists in the sitemap
+     */
     public boolean addUrl(Url url) {
         if (isNull(url)) {
             throw new NullPointerException("Parameter 'url' must not be null");
@@ -85,6 +197,13 @@ public class Sitemap {
         return false;
     }
 
+    /**
+     * Modifies the URL in the sitemap.
+     *
+     * @param url URL to modify
+     * @return <code>true</code> if the URL is modified successfully
+     * @throws NullPointerException if URL is <code>null</code>
+     */
     public boolean modifyUrl(Url url) {
         if (isNull(url)) {
             throw new NullPointerException("Parameter 'url' must not be null");
@@ -94,6 +213,12 @@ public class Sitemap {
         return nonNull(prevUrl);
     }
 
+    /**
+     * Performs to flush the current state of the sitemap to a file in the file system.
+     * This method is part of the life cycle of working with a sitemap.
+     *
+     * @throws SitemapNotFlushedException if errors occurred while flushing the sitemap
+     */
     public void flush() {
         new SitemapFlusher().flush(urls.values(), file);
         urls.clear();
@@ -103,6 +228,11 @@ public class Sitemap {
         return urls.containsKey(url.getLoc());
     }
 
+    /**
+     * Represents the parent tag for any sitemap URL.
+     *
+     * @see <a href="https://www.sitemaps.org/protocol.html#urldef">XML tag definitions</a>
+     */
     public static class Url extends SitemapIndex.Url {
         private ChangeFreq changefreq;
         private Float priority;
