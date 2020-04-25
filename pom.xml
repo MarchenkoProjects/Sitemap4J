@@ -6,7 +6,7 @@
 
     <groupId>com.github.marchenkoprojects</groupId>
     <artifactId>sitemap4j</artifactId>
-    <version>0.1-SNAPSHOT</version>
+    <version>0.1</version>
     <packaging>jar</packaging>
 
     <name>Sitemap4J</name>
@@ -48,9 +48,6 @@
     <profiles>
         <profile>
             <id>sonatype-oss-release</id>
-            <activation>
-                <activeByDefault>false</activeByDefault>
-            </activation>
             <build>
                 <plugins>
                     <plugin>
