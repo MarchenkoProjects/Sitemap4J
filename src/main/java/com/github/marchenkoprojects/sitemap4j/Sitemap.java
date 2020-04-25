@@ -109,6 +109,7 @@ public class Sitemap {
      * if the current <code>url</code> does not contain it.
      *
      * @param url URL for adding to the sitemap
+     * @return created URL
      * @throws NullPointerException if URL is <code>null</code> or empty
      */
     public Url createUrl(String url) {
