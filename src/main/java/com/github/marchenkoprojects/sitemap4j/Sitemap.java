@@ -19,17 +19,17 @@ import static java.util.Objects.nonNull;
  * </ol>
  *
  * <p> Example:
- * <pre>
+ * <code>
  *     Sitemap sitemap = new Sitemap(new File("sitemap.xml"));
  *     sitemap.load();
  *     sitemap.addUrl("http://example.com/page1.html");
  *     sitemap.addUrl("http://example.com/page2.html");
  *     sitemap.addUrl("http://example.com/page3.html");
  *     sitemap.flush();
- * </pre>
+ * </code>
  *
  * @author Oleg Marchenko
- * @see <a href="https://www.sitemaps.org/protocol.html">Sitemaps XML format</a>
+ * @see <a href="https://www.sitemaps.org/protocol.html">Sitemap protocol</a>
  */
 public class Sitemap {
     /**
@@ -72,9 +72,9 @@ public class Sitemap {
     }
 
     /**
-     * Creates a new sitemap instance with an abstract or real file and base URL.
+     * Creates a new sitemap instance with an abstract or real file and base site URL.
      *
-     * @param file abstract or real file in filesystem;
+     * @param file abstract or real sitemap file in filesystem;
      *             this file may also have a <tt>.gz</tt> extension
      * @param baseUrl basic site URL
      * @throws NullPointerException if the file is <code>null</code>
@@ -156,10 +156,11 @@ public class Sitemap {
 
     /**
      * Adds a new URL to the sitemap.
+     * If base URL are present that this method can accept part of url without part of base URL.
      *
      * @param url new URL to add
      * @return <code>true</code> if the URL is added successfully;
-     *         URL will not be added to the site map if such URL already exists
+     *         URL will not be added to the sitemap if such URL already exists
      *         or the maximum number of URls has been reached
      * @throws IllegalArgumentException if URL is <code>null</code> or empty
      * @throws SitemapAlreadyContainsUrlException if this URL already exists in the sitemap
@@ -168,15 +169,16 @@ public class Sitemap {
         if (isNull(url) || url.isEmpty()) {
             throw new IllegalArgumentException("Parameter 'url' must not be null or empty");
         }
-        return addUrl(new Url(url));
+        return addUrl(createUrl(url));
     }
 
     /**
      * Adds a new URL to the sitemap.
+     * If base URL are present that this method can accept part of url without part of base URL.
      *
      * @param url new URL to add
      * @return <code>true</code> if the URL is added successfully;
-     *         URL will not be added to the site map if such URL already exists
+     *         URL will not be added to the sitemap if such URL already exists
      *         or the maximum number of URls has been reached
      * @throws NullPointerException if URL is <code>null</code>
      * @throws SitemapAlreadyContainsUrlException if this URL already exists in the sitemap
@@ -198,7 +200,7 @@ public class Sitemap {
     }
 
     /**
-     * Modifies the URL in the sitemap.
+     * Modifies the URL in the sitemap. URL be to modify only if existing in current sitemap.
      *
      * @param url URL to modify
      * @return <code>true</code> if the URL is modified successfully
@@ -224,6 +226,12 @@ public class Sitemap {
         urls.clear();
     }
 
+    /**
+     * Returns <code>true</code> if this sitemap contains the current URL.
+     *
+     * @param url URL to be tested
+     * @return <code>true</code> if sitemap contain the URL
+     */
     protected boolean containsUrl(Url url) {
         return urls.containsKey(url.getLoc());
     }
@@ -231,10 +239,23 @@ public class Sitemap {
     /**
      * Represents the parent tag for any sitemap URL.
      *
-     * @see <a href="https://www.sitemaps.org/protocol.html#urldef">XML tag definitions</a>
+     * @see <a href="https://www.sitemaps.org/protocol.html#urldef">Sitemap tag definitions</a>
      */
     public static class Url extends SitemapIndex.Url {
+        /**
+         * How frequently the page is likely to change.
+         * This value provides general information to search engines and
+         * may not correlate exactly to how often they crawl the page.
+         *
+         * @see <a href="https://www.sitemaps.org/protocol.html#changefreqdef">'changefreq' tag</a>
+         */
         private ChangeFreq changefreq;
+        /**
+         * The priority of this URL relative to other URLs on your site.
+         * Valid values range from 0.0 to 1.0.
+         *
+         * @see <a href="https://www.sitemaps.org/protocol.html#prioritydef">'priority' tag</a>
+         */
         private Float priority;
 
         Url(String loc) {
